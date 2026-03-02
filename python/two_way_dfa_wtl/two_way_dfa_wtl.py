@@ -7,6 +7,8 @@ class _StateHeadDirection(Enum):
     RIGHT = auto()
 
 
+ACCEPT_STRING = "accept"
+REJECT_STRING = "reject"
 class TwoWayDfaWtl:
     def __init__(self,
                  states: list[str],
@@ -36,7 +38,7 @@ class TwoWayDfaWtl:
                                  start: str,
                                  left_marker: str,
                                  right_marker: str) -> TwoWayDfaWtl:
-        states: list[str] = ["accept"] + list(left_state | right_state)
+        states: list[str] = [ACCEPT_STRING] + list(left_state | right_state)
 
         state_direction: list[_StateHeadDirection] = [
             _StateHeadDirection.LEFT if s in left_state
@@ -74,6 +76,9 @@ class TwoWayDfaWtl:
                              inscription: str,
                              left_marker: str,
                              right_marker: str) -> str:
+        if state == ACCEPT_STRING:
+            return ACCEPT_STRING
+        
         if direction == _StateHeadDirection.RIGHT:
             middle = state + " " + inscription
         else:
@@ -92,7 +97,7 @@ class TwoWayDfaWtl:
             self.__right_marker)
         configuration_story: list[str] = [current_configuration]
 
-        while current_configuration != "accept" and current_configuration != "reject":
+        while current_configuration != ACCEPT_STRING and current_configuration != REJECT_STRING:
             current_direction = self.__state_direction[current_state]
 
             if current_direction == _StateHeadDirection.RIGHT:
@@ -103,7 +108,7 @@ class TwoWayDfaWtl:
             for i, letter in enumerate(to_iter):
                 if letter not in self.__tau[current_state]:
                     if letter not in self.__delta[current_state]:
-                        current_configuration = "reject"
+                        current_configuration = REJECT_STRING
                     else:
                         if current_direction == _StateHeadDirection.RIGHT:
                             inscription = inscription[:i] + inscription[i+1:]
@@ -112,16 +117,13 @@ class TwoWayDfaWtl:
                                 inscription) - i - 1] + inscription[len(inscription) - i:]
 
                         current_state = self.__delta[current_state][letter]
-                        if current_state == 0:
-                            current_configuration = "accept"
-                        else:
-                            current_configuration = self.__make_configuration(
-                                self.__states[current_state],
-                                self.__state_direction[current_state],
-                                inscription,
-                                self.__left_marker,
-                                self.__right_marker
-                            )
+                        current_configuration = self.__make_configuration(
+                            self.__states[current_state],
+                            self.__state_direction[current_state],
+                            inscription,
+                            self.__left_marker,
+                            self.__right_marker
+                        )
                     break
 
             configuration_story.append(current_configuration)
