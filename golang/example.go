@@ -3,10 +3,11 @@ package main
 import (
 	"dfawtl/two_way_dfa_wtl"
 	"fmt"
+	"os"
 )
 
 func twoWayDfaWtl() {
-	w := "aababbcc"
+	w := os.Args[1]
 
 	b := two_way_dfa_wtl.NewBuilder([]string{"q_a", "q_b"}, []string{"q_c"}, "q_a", ']', '[')
 	b.WithDelta("q_a", 'a', "q_b")
