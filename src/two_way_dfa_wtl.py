@@ -106,26 +106,23 @@ class TwoWayDfaWtl:
         self._left_marker = left_marker
         self._right_marker = right_marker
 
-        self.__sweeping = True
-        if state_direction[start] != _StateHeadDirection.RIGHT:
-            self.__sweeping = False
-        else:
-            for from_state, d in enumerate(delta):
-                if not self.__sweeping:
-                    break
-                for letter, to_state in d.items():
-                    if states[to_state] == ACCEPT_STRING:
-                        continue
-                    from_state_direction = state_direction[from_state]
-                    to_state_direction = state_direction[to_state]
-                    is_marker = letter in {left_marker, right_marker}
+        self.__sweeping = self.__check_sweeping()
 
-                    if is_marker and from_state_direction == to_state_direction:
-                        self.__sweeping = False
-                        break
-                    elif (not is_marker) and from_state_direction != to_state_direction:
-                        self.__sweeping = False
-                        break
+    def __check_sweeping(self) -> bool:
+        if self._state_direction[self._start] != _StateHeadDirection.RIGHT:
+            return False
+        for from_state, d in enumerate(self._delta):
+            for letter, to_state in d.items():
+                if self._states[to_state] == ACCEPT_STRING:
+                    continue
+                from_dir = self._state_direction[from_state]
+                to_dir = self._state_direction[to_state]
+                is_marker = letter in {self._left_marker, self._right_marker}
+                if is_marker and from_dir == to_dir:
+                    return False
+                if not is_marker and from_dir != to_dir:
+                    return False
+        return True
 
     def is_sweeping(self) -> bool:
         return self.__sweeping
@@ -196,8 +193,8 @@ class TwoWayDfaWtl:
             raise ValueError("Destination state does not exist.")
 
         tau: list[set[str]] = [
-            {} if s not in tau.keys()
-            else {letter for letter in tau[s]}
+            set() if s not in tau.keys()
+            else set(tau[s])
             for s in states
         ]
 
