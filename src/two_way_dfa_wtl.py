@@ -14,12 +14,13 @@ REJECT_STRING = "reject"
 class TwoWayDfaWtl:
     """Represents a Two-Way Deterministic Finite Automaton with Translucent 
     Input Letters (2DFAwtl). Autodetect whether it meets sweeping restriction
-    conditions."""
+    (SDFAwtl) conditions."""
     class Computation:
         """
         Compute a given word with the given automaton, iterating over the
         configurations which the automaton goes through.
         """
+
         def __init__(self, automaton: TwoWayDfaWtl, word: str):
             """Create the computation given an automaton and a word."""
             self.__automaton = automaton
@@ -104,19 +105,21 @@ class TwoWayDfaWtl:
         self._start = start
         self._left_marker = left_marker
         self._right_marker = right_marker
-        
+
         self.__sweeping = True
         if state_direction[start] != _StateHeadDirection.RIGHT:
             self.__sweeping = False
         else:
             for from_state, d in enumerate(delta):
-                if not self.__sweeping: break
+                if not self.__sweeping:
+                    break
                 for letter, to_state in d.items():
-                    if states[to_state] == ACCEPT_STRING: continue
+                    if states[to_state] == ACCEPT_STRING:
+                        continue
                     from_state_direction = state_direction[from_state]
                     to_state_direction = state_direction[to_state]
                     is_marker = letter in {left_marker, right_marker}
-                    
+
                     if is_marker and from_state_direction == to_state_direction:
                         self.__sweeping = False
                         break
@@ -126,7 +129,6 @@ class TwoWayDfaWtl:
 
     def is_sweeping(self) -> bool:
         return self.__sweeping
-
 
     @classmethod
     def from_symbolic_definition(cls,
@@ -139,38 +141,38 @@ class TwoWayDfaWtl:
                                  right_marker: str) -> TwoWayDfaWtl:
         """
         Generate a 2DFAwtl with the given symbolic definition.
-        
+
         The special state "accept" MUST NOT be in right_states or left_states.
         User may use "accept" in delta.
-        
+
         Raise ValueError if start state is not contained in right_states or
         left_states, or delta contains a mapping from a state not contained in
         right_states or left_states.
-        
+
         Arguments:
-        
+
         right_states -- set of states leading the input head rightward (namely,
         the ones in Q_r).
-        
+
         left_states -- set of states leading the input head leftward (namely,
         the ones in Q_l).
-        
+
         delta -- representation of the delta function of the automaton. This is
         a dictionary which associates one state to a dictionary which, in turn,
         associates the previous state and the current letter to the next state
         (i.e. delta[q][l] = p iff delta(q, l) = p).
-        
+
         tau -- representation of the translucency mapping. This is a dictionary
         which associates one state to a set of their invisible input letters.
-        
+
         start -- initial state.
-        
+
         left_marker -- left marker symbol.
-        
+
         right_marker -- right marker symbol. 
         """
         states: list[str] = [ACCEPT_STRING] + list(left_states | right_states)
-        
+
         state_direction: list[_StateHeadDirection] = [
             _StateHeadDirection.LEFT if s in left_states
             else _StateHeadDirection.RIGHT
@@ -183,7 +185,6 @@ class TwoWayDfaWtl:
             start = state_to_int[start]
         except KeyError:
             raise ValueError("Start state does not exist.")
-            
 
         try:
             delta: list[dict[str, int]] = [
@@ -237,7 +238,7 @@ def main():
         computation.step()
     else:
         print(computation.configuration())
-        
+
     alphabet = {"a", "b"}
     automaton = TwoWayDfaWtl.from_symbolic_definition(
         {"q_0", "q_a", "q_b"},
@@ -277,7 +278,6 @@ def main():
     print(automaton.is_sweeping())
     computation = TwoWayDfaWtl.Computation(automaton, sys.argv[2])
 
-    
     while not computation.halt():
         print(computation.configuration())
         computation.step()
