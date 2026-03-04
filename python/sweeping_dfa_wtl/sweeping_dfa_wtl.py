@@ -171,18 +171,16 @@ class SweepingDfaWtl:
             
             to_append : dict[str, int] = {}
             for letter, to_state in delta[from_state].items():
-                """
                 if from_state in right_states:
-                    if (letter == right_marker) and (to_state not in left_states.union(ACCEPT_STRING)):
-                        raise ValueError("Delta from right state and right marker must map to a left state or accept.")
-                    elif (letter != right_marker) and (to_state not in right_states.union(ACCEPT_STRING)):
-                        raise ValueError("Delta from right state and a letter must map to a right state or accept.")
+                    if (letter == right_marker) and (to_state in right_states):
+                        raise ValueError("Delta from right state and right marker must not map to a right state.")
+                    elif (letter != right_marker) and (to_state in left_states):
+                        raise ValueError("Delta from right state and a letter must not map to a left state.")
                 else:
-                    if (letter == left_marker) and (to_state not in right_states.union(ACCEPT_STRING)):
-                        raise ValueError("Delta from left state and left marker must map to a right state or accept.")
-                    elif (letter != left_marker) and (to_state not in left_states.union(ACCEPT_STRING)):
-                        raise ValueError("Delta from left state and a letter must map to a left state or accept.")
-                """
+                    if (letter == left_marker) and (to_state in left_states):
+                        raise ValueError("Delta from left state and left marker must not map to a left.")
+                    elif (letter != left_marker) and (to_state in right_states):
+                        raise ValueError("Delta from left state and a letter must not map to a right state.")
                 try:
                     to_append[letter] = state_to_int[to_state]
                 except KeyError:
