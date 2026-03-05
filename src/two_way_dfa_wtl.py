@@ -1,5 +1,4 @@
 from enum import Enum, auto
-import sys
 
 
 class _StateHeadDirection(Enum):
@@ -97,7 +96,7 @@ class TwoWayDfaWtl:
                  left_marker: str,
                  right_marker: str):
         """Create a 2DFAwtl. User MUST NOT call this method; use factory method
-        from_symbolic_definition() instaed."""
+        from_symbolic_definition() instead."""
         self._states = states
         self._state_direction = state_direction
         self._delta = delta
@@ -179,12 +178,12 @@ class TwoWayDfaWtl:
         state_to_int = {s: i for i, s in enumerate(states)}
 
         try:
-            start = state_to_int[start]
+            int_start = state_to_int[start]
         except KeyError:
             raise ValueError("Start state does not exist.")
 
         try:
-            delta: list[dict[str, int]] = [
+            int_delta: list[dict[str, int]] = [
                 {} if s not in delta.keys()
                 else {letter: state_to_int[to_state] for letter, to_state in delta[s].items()}
                 for s in states
@@ -192,10 +191,10 @@ class TwoWayDfaWtl:
         except KeyError:
             raise ValueError("Destination state does not exist.")
 
-        tau: list[set[str]] = [
+        int_tau: list[set[str]] = [
             set() if s not in tau.keys()
             else set(tau[s])
             for s in states
         ]
 
-        return TwoWayDfaWtl(states, state_direction, delta, tau, start, left_marker, right_marker)
+        return TwoWayDfaWtl(states, state_direction, int_delta, int_tau, int_start, left_marker, right_marker)
