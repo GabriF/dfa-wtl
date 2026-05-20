@@ -140,3 +140,54 @@ func TestComputeReject(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestFromSymbolicDefinition(t *testing.T) {
+	m := FromSymbolDescription(
+		[]string{"qa", "qb"},
+		[]string{"qc"},
+		"qa",
+		[]rune{'a', 'b', 'c'},
+		']',
+		'[',
+		map[string]map[rune]string{
+			"qa": {
+				'a': "qb",
+			},
+			"qb": {
+				'b': "qc",
+			},
+			"qc": {
+				'c': "qa",
+				']': "accept",
+			},
+		},
+		map[string]map[rune]bool{
+			"qa": {
+				'b': true,
+			},
+			"qb": {
+				'a': true,
+			},
+		},
+	)
+
+	t.Log(m)
+
+	id := NewComputation(m, "aababbcc")
+	for !id.Halt {
+		t.Log(id.String())
+		ComputeNext(m, id)
+	}
+	if id.stateStr != "accept" {
+		t.Fatalf("Expected accept")
+	}
+
+	id = NewComputation(m, "aababbc")
+	for !id.Halt {
+		t.Log(id.String())
+		ComputeNext(m, id)
+	}
+	if id.stateStr != "reject" {
+		t.Fatalf("Expected reject")
+	}
+}
