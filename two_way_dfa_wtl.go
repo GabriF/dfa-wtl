@@ -66,9 +66,9 @@ func ComputeNext(m *TwoWayDfaWtl, id *TwoWayDfaWtlID) {
 		}
 	}
 
-	for m.tau[id.state][m.alphabetEnumeration[currentSymbol.val]] &&
-		currentSymbol.val != m.leftMarker &&
-		currentSymbol.val != m.rightMarker {
+	for currentSymbol.val != m.leftMarker &&
+		currentSymbol.val != m.rightMarker &&
+		m.tau[id.state][m.alphabetEnumeration[currentSymbol.val]] {
 		currentSymbol = nextSymbol(currentSymbol)
 	}
 

@@ -35,3 +35,108 @@ func TestLinkedListRemoveTail(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestComputeNext(t *testing.T) {
+	m := &TwoWayDfaWtl{
+		initialState: 0,
+		delta: [][]int{
+			{1, 2, 6, 7},
+			{7, 7, 3, 7},
+			{7, 7, 4, 7},
+			{5, 7, 7, 7},
+			{7, 5, 7, 7},
+			{7, 7, 7, 0},
+		},
+		tau: [][]bool{
+			{false, false},
+			{true, true},
+			{true, true},
+			{false, false},
+			{false, false},
+			{true, true},
+		},
+		leftMarker:          ']',
+		rightMarker:         '[',
+		alphabetEnumeration: map[rune]int{'a': 0, 'b': 1, '[': 2, ']': 3},
+		stateName:           []string{"q0", "qa", "qb", "pa", "pb", "pr", "accept", "reject"},
+		qrCardinality:       3,
+	}
+	id := NewComputation(m, "abba")
+	ComputeNext(m, id)
+
+	if id.state != 1 || id.stateStr != "qa" || id.Halt {
+		t.FailNow()
+	}
+}
+
+func TestComputeAccept(t *testing.T) {
+	m := &TwoWayDfaWtl{
+		initialState: 0,
+		delta: [][]int{
+			{1, 2, 6, 7},
+			{7, 7, 3, 7},
+			{7, 7, 4, 7},
+			{5, 7, 7, 7},
+			{7, 5, 7, 7},
+			{7, 7, 7, 0},
+		},
+		tau: [][]bool{
+			{false, false},
+			{true, true},
+			{true, true},
+			{false, false},
+			{false, false},
+			{true, true},
+		},
+		leftMarker:          ']',
+		rightMarker:         '[',
+		alphabetEnumeration: map[rune]int{'a': 0, 'b': 1, '[': 2, ']': 3},
+		stateName:           []string{"q0", "qa", "qb", "pa", "pb", "pr", "accept", "reject"},
+		qrCardinality:       3,
+	}
+	id := NewComputation(m, "abba")
+
+	for !id.Halt {
+		ComputeNext(m, id)
+	}
+
+	if (!id.Halt) || id.stateStr != "accept" {
+		t.FailNow()
+	}
+}
+
+func TestComputeReject(t *testing.T) {
+	m := &TwoWayDfaWtl{
+		initialState: 0,
+		delta: [][]int{
+			{1, 2, 6, 7},
+			{7, 7, 3, 7},
+			{7, 7, 4, 7},
+			{5, 7, 7, 7},
+			{7, 5, 7, 7},
+			{7, 7, 7, 0},
+		},
+		tau: [][]bool{
+			{false, false},
+			{true, true},
+			{true, true},
+			{false, false},
+			{false, false},
+			{true, true},
+		},
+		leftMarker:          ']',
+		rightMarker:         '[',
+		alphabetEnumeration: map[rune]int{'a': 0, 'b': 1, '[': 2, ']': 3},
+		stateName:           []string{"q0", "qa", "qb", "pa", "pb", "pr", "accept", "reject"},
+		qrCardinality:       3,
+	}
+	id := NewComputation(m, "abbba")
+
+	for !id.Halt {
+		ComputeNext(m, id)
+	}
+
+	if (!id.Halt) || id.stateStr != "reject" {
+		t.FailNow()
+	}
+}
