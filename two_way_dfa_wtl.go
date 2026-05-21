@@ -2,6 +2,11 @@ package gotwodfawtl
 
 import "fmt"
 
+const (
+	ACCEPT_STATE = "accept"
+	REJECT_STATE = "reject"
+)
+
 type TwoWayDfaWtl struct {
 	initialState int
 
@@ -40,10 +45,10 @@ func FromSymbolDescription(
 		m.stateName[i+len(qrStates)] = q
 		supportStatesEnumeration[q] = i + len(qrStates)
 	}
-	m.stateName[statesCardinality] = "accept"
-	m.stateName[statesCardinality+1] = "reject"
-	supportStatesEnumeration["accept"] = statesCardinality
-	supportStatesEnumeration["reject"] = statesCardinality + 1
+	m.stateName[statesCardinality] = ACCEPT_STATE
+	m.stateName[statesCardinality+1] = REJECT_STATE
+	supportStatesEnumeration[ACCEPT_STATE] = statesCardinality
+	supportStatesEnumeration[REJECT_STATE] = statesCardinality + 1
 	m.alphabetEnumeration = make(map[rune]int, len(sigma)+2)
 	for i, a := range sigma {
 		m.alphabetEnumeration[a] = i
@@ -54,23 +59,20 @@ func FromSymbolDescription(
 	m.initialState = supportStatesEnumeration[initialState]
 
 	m.delta = make([][]int, statesCardinality)
+	m.tau = make([][]bool, statesCardinality)
 	for i := range statesCardinality {
 		m.delta[i] = make([]int, len(sigma)+2)
+		m.tau[i] = make([]bool, len(sigma))
 		q := m.stateName[i]
 
 		for a, j := range m.alphabetEnumeration {
 			if val, ok := delta[q][a]; !ok {
-				m.delta[i][j] = supportStatesEnumeration["reject"]
+				m.delta[i][j] = supportStatesEnumeration[REJECT_STATE]
 			} else {
 				m.delta[i][j] = supportStatesEnumeration[val]
 			}
 		}
-	}
 
-	m.tau = make([][]bool, statesCardinality)
-	for i := range statesCardinality {
-		m.tau[i] = make([]bool, len(sigma))
-		q := m.stateName[i]
 		for j, a := range sigma {
 			if val, ok := tau[q][a]; !ok {
 				m.tau[i][j] = false
@@ -99,7 +101,7 @@ func (t *TwoWayDfaWtlID) String() string {
 }
 
 func newID(stateStr string, state int, tape runeDoublyLinkedList) *TwoWayDfaWtlID {
-	isHalted := stateStr == "accept" || stateStr == "reject"
+	isHalted := stateStr == ACCEPT_STATE || stateStr == REJECT_STATE
 	return &TwoWayDfaWtlID{
 		isHalted,
 		stateStr,
