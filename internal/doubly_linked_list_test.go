@@ -7,7 +7,7 @@ import (
 )
 
 func TestDLLOneElement(t *testing.T) {
-	ll := &IntDoublyLinkedList{}
+	ll := &DoublyLinkedList{}
 	ll.InsertEnd(1)
 	if ll.First().Val() != 1 {
 		t.FailNow()
@@ -17,7 +17,7 @@ func TestDLLOneElement(t *testing.T) {
 func TestLinkedListRemove(t *testing.T) {
 	expected := "0 2"
 
-	ll := &IntDoublyLinkedList{}
+	ll := &DoublyLinkedList{}
 	ll.InsertEnd(0)
 	ll.InsertEnd(1)
 	ll.InsertEnd(2)
@@ -32,7 +32,7 @@ func TestLinkedListRemove(t *testing.T) {
 func TestLinkedListRemoveHead(t *testing.T) {
 	expected := "1 2"
 
-	ll := &IntDoublyLinkedList{}
+	ll := &DoublyLinkedList{}
 	ll.InsertEnd(0)
 	ll.InsertEnd(1)
 	ll.InsertEnd(2)
@@ -47,7 +47,7 @@ func TestLinkedListRemoveHead(t *testing.T) {
 func TestLinkedListRemoveTail(t *testing.T) {
 	expected := "0 1"
 
-	ll := &IntDoublyLinkedList{}
+	ll := &DoublyLinkedList{}
 	ll.InsertEnd(0)
 	ll.InsertEnd(1)
 	ll.InsertEnd(2)

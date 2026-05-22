@@ -8,23 +8,23 @@ import (
 type Node struct {
 	prev *Node
 	next *Node
-	val  int
+	val  any
 }
 
-func (n *Node) Val() int {
+func (n *Node) Val() any {
 	return n.val
 }
 
-func newNode(val int) *Node {
+func newNode(val any) *Node {
 	return &Node{nil, nil, val}
 }
 
-type IntDoublyLinkedListIter struct {
+type DoublyLinkedListIter struct {
 	current         *Node
 	isDirectionNext bool
 }
 
-func (t *IntDoublyLinkedListIter) Next() *Node {
+func (t *DoublyLinkedListIter) Next() *Node {
 	if t.current == nil {
 		return nil
 	}
@@ -37,12 +37,12 @@ func (t *IntDoublyLinkedListIter) Next() *Node {
 	return toReturn
 }
 
-type IntDoublyLinkedList struct {
+type DoublyLinkedList struct {
 	head *Node
 	tail *Node
 }
 
-func (r *IntDoublyLinkedList) String() string {
+func (r *DoublyLinkedList) String() string {
 	str := &strings.Builder{}
 	it := r.TraverseFromStart()
 	current := it.Next()
@@ -56,7 +56,7 @@ func (r *IntDoublyLinkedList) String() string {
 	return str.String()
 }
 
-func (l *IntDoublyLinkedList) AtIndex(index int) *Node {
+func (l *DoublyLinkedList) AtIndex(index int) *Node {
 	current := l.head
 	for range index {
 		current = current.next
@@ -64,15 +64,15 @@ func (l *IntDoublyLinkedList) AtIndex(index int) *Node {
 	return current
 }
 
-func (l *IntDoublyLinkedList) First() *Node {
+func (l *DoublyLinkedList) First() *Node {
 	return l.head
 }
 
-func (l *IntDoublyLinkedList) Last() *Node {
+func (l *DoublyLinkedList) Last() *Node {
 	return l.tail
 }
 
-func (l *IntDoublyLinkedList) Remove(node *Node) {
+func (l *DoublyLinkedList) Remove(node *Node) {
 	if l.head == node && l.tail == node {
 		l.head = nil
 		l.tail = nil
@@ -92,7 +92,7 @@ func (l *IntDoublyLinkedList) Remove(node *Node) {
 	}
 }
 
-func (l *IntDoublyLinkedList) InsertEnd(val int) {
+func (l *DoublyLinkedList) InsertEnd(val any) {
 	node := newNode(val)
 	switch l.tail {
 	case nil:
@@ -107,10 +107,10 @@ func (l *IntDoublyLinkedList) InsertEnd(val int) {
 	l.tail = node
 }
 
-func (l *IntDoublyLinkedList) TraverseFromStart() *IntDoublyLinkedListIter {
-	return &IntDoublyLinkedListIter{current: l.head, isDirectionNext: true}
+func (l *DoublyLinkedList) TraverseFromStart() *DoublyLinkedListIter {
+	return &DoublyLinkedListIter{current: l.head, isDirectionNext: true}
 }
 
-func (l *IntDoublyLinkedList) TraverseFromEnd() *IntDoublyLinkedListIter {
-	return &IntDoublyLinkedListIter{current: l.tail, isDirectionNext: false}
+func (l *DoublyLinkedList) TraverseFromEnd() *DoublyLinkedListIter {
+	return &DoublyLinkedListIter{current: l.tail, isDirectionNext: false}
 }
