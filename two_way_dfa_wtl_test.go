@@ -130,7 +130,7 @@ func TestAutomatonComputation(t *testing.T) {
 		for !id.Halt {
 			ComputeNext(tt.m, id)
 		}
-		correct := (id.stateStr == "accept" && tt.accept) || (id.stateStr == "reject" && (!tt.accept))
+		correct := (id.Accept && tt.accept) || ((!id.Accept) && (!tt.accept))
 		if !correct {
 			t.Errorf("Expected %t on input %s with automaton %+v", tt.accept, tt.word, tt.m)
 		}

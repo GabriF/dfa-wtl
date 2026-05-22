@@ -86,6 +86,7 @@ func FromSymbolDescription(
 }
 
 type TwoWayDfaWtlID struct {
+	Accept   bool
 	Halt     bool
 	stateStr string
 	state    int
@@ -102,7 +103,9 @@ func (t *TwoWayDfaWtlID) String() string {
 
 func newID(stateStr string, state int, tape runeDoublyLinkedList) *TwoWayDfaWtlID {
 	isHalted := stateStr == ACCEPT_STATE || stateStr == REJECT_STATE
+	isAccept := stateStr == ACCEPT_STATE
 	return &TwoWayDfaWtlID{
+		isAccept,
 		isHalted,
 		stateStr,
 		state,
