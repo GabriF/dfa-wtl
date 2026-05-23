@@ -58,3 +58,18 @@ func TestLinkedListRemoveTail(t *testing.T) {
 		t.Fatalf("Expected %s found %s", expected, actual)
 	}
 }
+
+func TestLinkedListLen(t *testing.T) {
+	expected := 3
+
+	ll := &DoublyLinkedList{}
+	ll.InsertEnd(0)
+	ll.InsertEnd(1)
+	ll.InsertEnd(2)
+	ll.Remove(ll.Last())
+
+	actual := ll.Len()
+	if actual != expected {
+		t.Fatalf("Expected %d actual %d", expected, actual)
+	}
+}

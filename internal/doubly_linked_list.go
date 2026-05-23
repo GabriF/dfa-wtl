@@ -40,6 +40,7 @@ func (t *DoublyLinkedListIter) Next() *Node {
 type DoublyLinkedList struct {
 	head *Node
 	tail *Node
+	len  int
 }
 
 func (r *DoublyLinkedList) String() string {
@@ -54,6 +55,10 @@ func (r *DoublyLinkedList) String() string {
 		}
 	}
 	return str.String()
+}
+
+func (l *DoublyLinkedList) Len() int {
+	return l.len
 }
 
 func (l *DoublyLinkedList) AtIndex(index int) *Node {
@@ -105,6 +110,7 @@ func (l *DoublyLinkedList) InsertEnd(val any) {
 		l.tail.next = node
 	}
 	l.tail = node
+	l.len++
 }
 
 func (l *DoublyLinkedList) TraverseFromStart() *DoublyLinkedListIter {
