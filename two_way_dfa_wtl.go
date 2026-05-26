@@ -1,6 +1,10 @@
 package gotwodfawtl
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/GabriF/dfa-wtl/internal"
+)
 
 const (
 	ACCEPT_STATE = "accept"
@@ -90,7 +94,7 @@ type TwoWayDfaWtlID struct {
 	Halt     bool
 	stateStr string
 	state    int
-	tape     runeDoublyLinkedList
+	tape     *internal.DoublyLinkedList
 }
 
 func (t *TwoWayDfaWtlID) String() string {
@@ -101,7 +105,7 @@ func (t *TwoWayDfaWtlID) String() string {
 	}
 }
 
-func newID(stateStr string, state int, tape runeDoublyLinkedList) *TwoWayDfaWtlID {
+func newID(stateStr string, state int, tape *internal.DoublyLinkedList) *TwoWayDfaWtlID {
 	isHalted := stateStr == ACCEPT_STATE || stateStr == REJECT_STATE
 	isAccept := stateStr == ACCEPT_STATE
 	return &TwoWayDfaWtlID{
@@ -114,7 +118,12 @@ func newID(stateStr string, state int, tape runeDoublyLinkedList) *TwoWayDfaWtlI
 }
 
 func NewComputation(m *TwoWayDfaWtl, word string) *TwoWayDfaWtlID {
-	return newID(m.stateName[m.initialState], m.initialState, *fromStringDLL("]" + word + "["))
+	tape := &internal.DoublyLinkedList{}
+	word = string(m.leftMarker) + word + string(m.rightMarker)
+	for _, a := range word {
+		tape.InsertEnd(a)
+	}
+	return newID(m.stateName[m.initialState], m.initialState, tape)
 }
 
 func ComputeNext(m *TwoWayDfaWtl, id *TwoWayDfaWtlID) {
@@ -122,31 +131,30 @@ func ComputeNext(m *TwoWayDfaWtl, id *TwoWayDfaWtlID) {
 		return
 	}
 
-	var currentSymbol *runeNode
-	var nextSymbol func(*runeNode) *runeNode
-	isCurrentStateQr := id.state < m.qrCardinality
-	if isCurrentStateQr {
-		currentSymbol = id.tape.head.next
-		nextSymbol = func(rn *runeNode) *runeNode {
-			return rn.next
-		}
+	var it *internal.DoublyLinkedListIter
+	var toReadLetterNode *internal.Node
+	if id.state < m.qrCardinality {
+		it = id.tape.TraverseFromStart()
+		toReadLetterNode = id.tape.Last()
 	} else {
-		currentSymbol = id.tape.tail.prev
-		nextSymbol = func(rn *runeNode) *runeNode {
-			return rn.prev
+		it = id.tape.TraverseFromEnd()
+		toReadLetterNode = id.tape.First()
+	}
+	for curr := it.Next(); curr != nil; curr = it.Next() {
+		letter := curr.Val().(rune)
+		if letter != m.leftMarker &&
+			letter != m.rightMarker &&
+			(!m.tau[id.state][m.alphabetEnumeration[letter]]) {
+			toReadLetterNode = curr
+			break
 		}
 	}
 
-	for currentSymbol.val != m.leftMarker &&
-		currentSymbol.val != m.rightMarker &&
-		m.tau[id.state][m.alphabetEnumeration[currentSymbol.val]] {
-		currentSymbol = nextSymbol(currentSymbol)
+	toReadLetter := toReadLetterNode.Val().(rune)
+	if toReadLetter != m.leftMarker && toReadLetter != m.rightMarker {
+		id.tape.Remove(toReadLetterNode)
 	}
 
-	if currentSymbol.val != m.leftMarker && currentSymbol.val != m.rightMarker {
-		id.tape.remove(currentSymbol)
-	}
-
-	nextState := m.delta[id.state][m.alphabetEnumeration[currentSymbol.val]]
+	nextState := m.delta[id.state][m.alphabetEnumeration[toReadLetter]]
 	*id = *newID(m.stateName[nextState], nextState, id.tape)
 }
