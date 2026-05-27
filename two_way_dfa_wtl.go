@@ -170,6 +170,16 @@ func NewComputation(m *TwoWayDfaWtl, word string) *TwoWayDfaWtlID {
 	}
 }
 
+func (t *TwoWayDfaWtlID) changeState(letterEnum int) {
+	nextState := t.automaton.delta[t.state][letterEnum]
+	t.state = nextState
+	t.stateStr = t.automaton.stateName[t.state]
+	if t.stateStr == ACCEPT_STATE || t.stateStr == REJECT_STATE {
+		t.Halt = true
+		t.Accept = t.stateStr == ACCEPT_STATE
+	}
+}
+
 func ComputeNext(id *TwoWayDfaWtlID) {
 	if id.Halt {
 		return
@@ -177,63 +187,48 @@ func ComputeNext(id *TwoWayDfaWtlID) {
 
 	m := id.automaton
 
-	var currentMarkerEnum int
-	if id.state < m.qrCardinality {
-		currentMarkerEnum = m.alphabetEnumeration[m.rightMarker]
-	} else {
-		currentMarkerEnum = m.alphabetEnumeration[m.leftMarker]
-	}
-
 	var toReadLetterEnum int
 	if id.state < m.qrCardinality {
-		minPos := len(id.storeHead)
-		minLetterEnum := -1
+		toReadLetterEnum = m.alphabetEnumeration[m.rightMarker]
+
+		min := len(id.storeHead)
 		for i, v := range id.head {
-			if v != -1 && (!m.tau[id.state][i]) && v < minPos {
-				minPos = v
-				minLetterEnum = i
+			if v != -1 && (!m.tau[id.state][i]) && v < min {
+				min = v
+				toReadLetterEnum = i
 			}
-		}
-		if minLetterEnum != -1 {
-			toReadLetterEnum = minLetterEnum
-			id.head[minLetterEnum] = id.storeHead[id.head[minLetterEnum]]
-			if id.head[minLetterEnum] == -1 {
-				id.storeTail[id.tail[minLetterEnum]] = -1
-				id.tail[minLetterEnum] = -1
-			} else {
-				id.storeTail[id.head[minLetterEnum]] = -1
-			}
-		} else {
-			toReadLetterEnum = currentMarkerEnum
 		}
 	} else {
+		toReadLetterEnum = m.alphabetEnumeration[m.leftMarker]
+
 		maxPos := 0
-		maxLetterEnum := -1
 		for i, v := range id.tail {
 			if (!m.tau[id.state][i]) && v > maxPos {
 				maxPos = v
-				maxLetterEnum = i
+				toReadLetterEnum = i
 			}
-		}
-		if maxLetterEnum != -1 {
-			toReadLetterEnum = maxLetterEnum
-			id.tail[maxLetterEnum] = id.storeTail[id.tail[maxLetterEnum]]
-			if id.tail[maxLetterEnum] == -1 {
-				id.storeHead[id.head[maxLetterEnum]] = -1
-				id.head[maxLetterEnum] = -1
-			} else {
-				id.storeHead[id.tail[maxLetterEnum]] = -1
-			}
-		} else {
-			toReadLetterEnum = currentMarkerEnum
 		}
 	}
 
-	nextState := m.delta[id.state][toReadLetterEnum]
-	id.state = nextState
-	id.stateStr = m.stateName[id.state]
-	if id.stateStr == ACCEPT_STATE || id.stateStr == REJECT_STATE {
-		id.Halt = true
-		id.Accept = id.stateStr == ACCEPT_STATE
+	if id.state < m.qrCardinality &&
+		toReadLetterEnum != m.alphabetEnumeration[m.rightMarker] {
+		id.head[toReadLetterEnum] = id.storeHead[id.head[toReadLetterEnum]]
+		if id.head[toReadLetterEnum] == -1 {
+			id.storeTail[id.tail[toReadLetterEnum]] = -1
+			id.tail[toReadLetterEnum] = -1
+		} else {
+			id.storeTail[id.head[toReadLetterEnum]] = -1
+		}
+	} else if id.state >= m.qrCardinality &&
+		toReadLetterEnum != m.alphabetEnumeration[m.leftMarker] {
+		id.tail[toReadLetterEnum] = id.storeTail[id.tail[toReadLetterEnum]]
+		if id.tail[toReadLetterEnum] == -1 {
+			id.storeHead[id.head[toReadLetterEnum]] = -1
+			id.head[toReadLetterEnum] = -1
+		} else {
+			id.storeHead[id.tail[toReadLetterEnum]] = -1
+		}
 	}
+
+	id.changeState(toReadLetterEnum)
 }
