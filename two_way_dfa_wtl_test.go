@@ -98,7 +98,8 @@ func TestAutomatonComputation(t *testing.T) {
 	for _, tt := range tests {
 		id := NewComputation(tt.m, tt.word)
 		for !id.Halt {
-			ComputeNext(tt.m, id)
+			t.Log(id.String())
+			ComputeNext(id)
 		}
 		correct := (id.Accept && tt.accept) || ((!id.Accept) && (!tt.accept))
 		if !correct {

@@ -2,8 +2,7 @@ package gotwodfawtl
 
 import (
 	"fmt"
-
-	"github.com/GabriF/dfa-wtl/internal"
+	"strings"
 )
 
 const (
@@ -90,71 +89,151 @@ func FromSymbolDescription(
 }
 
 type TwoWayDfaWtlID struct {
-	Accept   bool
-	Halt     bool
-	stateStr string
-	state    int
-	tape     *internal.DoublyLinkedList
+	Accept    bool
+	Halt      bool
+	stateStr  string
+	state     int
+	head      []int
+	storeHead []int
+	tail      []int
+	storeTail []int
+	automaton *TwoWayDfaWtl
 }
 
 func (t *TwoWayDfaWtlID) String() string {
 	if t.Halt {
 		return t.stateStr
-	} else {
-		return fmt.Sprintf("(%s, %s)", t.stateStr, t.tape.String())
 	}
-}
 
-func newID(stateStr string, state int, tape *internal.DoublyLinkedList) *TwoWayDfaWtlID {
-	isHalted := stateStr == ACCEPT_STATE || stateStr == REJECT_STATE
-	isAccept := stateStr == ACCEPT_STATE
-	return &TwoWayDfaWtlID{
-		isAccept,
-		isHalted,
-		stateStr,
-		state,
-		tape,
+	tapeContent := make([]rune, len(t.storeHead))
+	for i := range len(tapeContent) {
+		tapeContent[i] = -1
 	}
+
+	for letter, letterEnum := range t.automaton.alphabetEnumeration {
+		if letter == t.automaton.leftMarker || letter == t.automaton.rightMarker {
+			continue
+		}
+		currentHead := t.head[letterEnum]
+		for currentHead != -1 {
+			tapeContent[currentHead] = letter
+			currentHead = t.storeHead[currentHead]
+		}
+	}
+
+	str := &strings.Builder{}
+	str.WriteString(fmt.Sprintf("(%s, ", t.stateStr))
+	for _, a := range tapeContent {
+		if a != -1 {
+			str.WriteRune(a)
+		}
+	}
+	str.WriteRune(')')
+
+	return str.String()
 }
 
 func NewComputation(m *TwoWayDfaWtl, word string) *TwoWayDfaWtlID {
-	tape := &internal.DoublyLinkedList{}
-	word = string(m.leftMarker) + word + string(m.rightMarker)
-	for _, a := range word {
-		tape.InsertEnd(a)
+	head := make([]int, len(m.alphabetEnumeration)-2)
+	storeHead := make([]int, len(word))
+	tail := make([]int, len(m.alphabetEnumeration)-2)
+	storeTail := make([]int, len(word))
+
+	for i := range len(head) {
+		head[i] = -1
+		tail[i] = -1
 	}
-	return newID(m.stateName[m.initialState], m.initialState, tape)
+
+	runeWord := []rune(word)
+	for i := len(word) - 1; i >= 0; i-- {
+		a := runeWord[i]
+		storeHead[i] = head[m.alphabetEnumeration[a]]
+		head[m.alphabetEnumeration[a]] = i
+	}
+
+	for i := 0; i < len(word); i++ {
+		a := runeWord[i]
+		storeTail[i] = tail[m.alphabetEnumeration[a]]
+		tail[m.alphabetEnumeration[a]] = i
+	}
+
+	return &TwoWayDfaWtlID{
+		Accept:    false,
+		Halt:      false,
+		stateStr:  m.stateName[m.initialState],
+		state:     m.initialState,
+		head:      head,
+		storeHead: storeHead,
+		tail:      tail,
+		storeTail: storeTail,
+		automaton: m,
+	}
 }
 
-func ComputeNext(m *TwoWayDfaWtl, id *TwoWayDfaWtlID) {
+func ComputeNext(id *TwoWayDfaWtlID) {
 	if id.Halt {
 		return
 	}
 
-	var it *internal.DoublyLinkedListIter
-	var toReadLetterNode *internal.Node
+	m := id.automaton
+
+	var currentMarkerEnum int
 	if id.state < m.qrCardinality {
-		it = id.tape.TraverseFromStart()
-		toReadLetterNode = id.tape.Last()
+		currentMarkerEnum = m.alphabetEnumeration[m.rightMarker]
 	} else {
-		it = id.tape.TraverseFromEnd()
-		toReadLetterNode = id.tape.First()
+		currentMarkerEnum = m.alphabetEnumeration[m.leftMarker]
 	}
-	for curr := it.Next(); curr != nil; curr = it.Next() {
-		letter := curr.Val().(rune)
-		if letter != m.leftMarker &&
-			letter != m.rightMarker &&
-			(!m.tau[id.state][m.alphabetEnumeration[letter]]) {
-			toReadLetterNode = curr
-			break
+
+	var toReadLetterEnum int
+	if id.state < m.qrCardinality {
+		minPos := len(id.storeHead)
+		minLetterEnum := -1
+		for i, v := range id.head {
+			if v != -1 && (!m.tau[id.state][i]) && v < minPos {
+				minPos = v
+				minLetterEnum = i
+			}
+		}
+		if minLetterEnum != -1 {
+			toReadLetterEnum = minLetterEnum
+			id.head[minLetterEnum] = id.storeHead[id.head[minLetterEnum]]
+			if id.head[minLetterEnum] == -1 {
+				id.storeTail[id.tail[minLetterEnum]] = -1
+				id.tail[minLetterEnum] = -1
+			} else {
+				id.storeTail[id.head[minLetterEnum]] = -1
+			}
+		} else {
+			toReadLetterEnum = currentMarkerEnum
+		}
+	} else {
+		maxPos := 0
+		maxLetterEnum := -1
+		for i, v := range id.tail {
+			if (!m.tau[id.state][i]) && v > maxPos {
+				maxPos = v
+				maxLetterEnum = i
+			}
+		}
+		if maxLetterEnum != -1 {
+			toReadLetterEnum = maxLetterEnum
+			id.tail[maxLetterEnum] = id.storeTail[id.tail[maxLetterEnum]]
+			if id.tail[maxLetterEnum] == -1 {
+				id.storeHead[id.head[maxLetterEnum]] = -1
+				id.head[maxLetterEnum] = -1
+			} else {
+				id.storeHead[id.tail[maxLetterEnum]] = -1
+			}
+		} else {
+			toReadLetterEnum = currentMarkerEnum
 		}
 	}
 
-	toReadLetter := toReadLetterNode.Val().(rune)
-	if toReadLetter != m.leftMarker && toReadLetter != m.rightMarker {
-		id.tape.Remove(toReadLetterNode)
+	nextState := m.delta[id.state][toReadLetterEnum]
+	id.state = nextState
+	id.stateStr = m.stateName[id.state]
+	if id.stateStr == ACCEPT_STATE || id.stateStr == REJECT_STATE {
+		id.Halt = true
+		id.Accept = id.stateStr == ACCEPT_STATE
 	}
-
-	nextState := m.delta[id.state][m.alphabetEnumeration[toReadLetter]]
-	*id = *newID(m.stateName[nextState], nextState, id.tape)
 }
