@@ -88,9 +88,11 @@ func TestAutomatonComputation(t *testing.T) {
 		word   string
 		accept bool
 	}{
+		{automatons()[0], "ab", true},
 		{automatons()[0], "abaabbcc", true},
 		{automatons()[0], "ababbccc", false},
 
+		{automatons()[1], "", true},
 		{automatons()[1], "ababbbbaba", true},
 		{automatons()[1], "ababbbaba", false},
 	}
