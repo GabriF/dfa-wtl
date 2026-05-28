@@ -112,36 +112,41 @@ func TestAutomatonComputation(t *testing.T) {
 	}
 }
 
+func makeBalancedWord(n int, rng *rand.Rand) string {
+	str := &strings.Builder{}
+	aCount, bCount := 0, 0
+	for i := 0; i < n*2; i++ {
+		if aCount == n {
+			str.WriteRune('b')
+		} else if bCount == n {
+			str.WriteRune('a')
+		} else if rng.Intn(2) == 0 {
+			str.WriteRune('a')
+			aCount++
+		} else {
+			str.WriteRune('b')
+			bCount++
+		}
+	}
+	for i := 0; i < n-1; i++ {
+		str.WriteRune('c')
+	}
+	return str.String()
+}
+
 func BenchmarkAutomatonComputation(b *testing.B) {
 	m := automatons()[0]
-	n := 10
+	n := 1000000000
 
-	for b.Loop() {
-		b.StopTimer()
+	rng := rand.New(rand.NewSource(1))
+	inputs := make([]string, b.N)
+	for i := 0; i < b.N; i++ {
+		inputs[i] = makeBalancedWord(n, rng)
+	}
 
-		str := &strings.Builder{}
-		a_count, b_count := 0, 0
-		for range n * 2 {
-			if a_count == n {
-				str.WriteRune('b')
-			} else if b_count == n {
-				str.WriteRune('a')
-			} else if rand.Intn(2) == 0 {
-				str.WriteRune('a')
-				a_count++
-			} else {
-				str.WriteRune('b')
-				b_count++
-			}
-		}
-		for range n - 1 {
-			str.WriteRune('c')
-		}
-		w := str.String()
-
-		b.StartTimer()
-
-		id := NewComputation(m, w)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		id := NewComputation(m, inputs[i])
 		for !id.Halt {
 			ComputeNext(id)
 		}
