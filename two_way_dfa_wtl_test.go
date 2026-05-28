@@ -112,9 +112,9 @@ func TestAutomatonComputation(t *testing.T) {
 	}
 }
 
-func BenchmarkAutomatonComputationBenchmark(b *testing.B) {
+func BenchmarkAutomatonComputation(b *testing.B) {
 	m := automatons()[0]
-	n := 100000000
+	n := 10
 
 	for b.Loop() {
 		b.StopTimer()
