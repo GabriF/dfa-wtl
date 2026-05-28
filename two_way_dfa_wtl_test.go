@@ -112,7 +112,8 @@ func TestAutomatonComputation(t *testing.T) {
 	}
 }
 
-func makeBalancedWord(n int, rng *rand.Rand) string {
+func makeBalancedWord(n int) string {
+	rng := rand.New(rand.NewSource(1))
 	str := &strings.Builder{}
 	aCount, bCount := 0, 0
 	for i := 0; i < n*2; i++ {
@@ -136,17 +137,14 @@ func makeBalancedWord(n int, rng *rand.Rand) string {
 
 func BenchmarkAutomatonComputation(b *testing.B) {
 	m := automatons()[0]
-	n := 1000000000
+	n := 100000000
 
-	rng := rand.New(rand.NewSource(1))
-	inputs := make([]string, b.N)
-	for i := 0; i < b.N; i++ {
-		inputs[i] = makeBalancedWord(n, rng)
-	}
+	for b.Loop() {
+		b.StopTimer()
+		w := makeBalancedWord(n)
+		b.StartTimer()
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		id := NewComputation(m, inputs[i])
+		id := NewComputation(m, w)
 		for !id.Halt {
 			ComputeNext(id)
 		}
